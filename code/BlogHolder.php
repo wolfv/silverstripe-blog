@@ -34,9 +34,9 @@ class BlogHolder extends BlogTree implements PermissionProvider {
 		$fields = parent::getCMSFields();
 		SiteTree::enableCMSFieldsExtensions();
 
-		$fields->addFieldToTab('Root.Content.Main', new CheckboxField('TrackBacksEnabled', 'Enable TrackBacks'));
-		$fields->addFieldToTab('Root.Content.Main', new DropdownField('OwnerID', 'Blog owner', $blogOwners->toDropDownMap('ID', 'Name', 'None')));
-		$fields->addFieldToTab('Root.Content.Main', new CheckboxField('AllowCustomAuthors', 'Allow non-admins to have a custom author field'));
+		$fields->addFieldToTab('Root.Main', new CheckboxField('TrackBacksEnabled', 'Enable TrackBacks'));
+		$fields->addFieldToTab('Root.Main', new DropdownField('OwnerID', 'Blog owner', $blogOwners->map('ID', 'Name', 'None')));
+		$fields->addFieldToTab('Root.Main', new CheckboxField('AllowCustomAuthors', 'Allow non-admins to have a custom author field'));
 
 		$this->extend('updateCMSFields', $fields);
 
@@ -148,6 +148,27 @@ class BlogHolder extends BlogTree implements PermissionProvider {
 
 			DB::alteration_message("Blog page created","created");
 		}
+	}
+	public function getChildrenAsUL($attributes = "", $titleEval = '"<li>" . $child->Title', $extraArg = null, $limitToMarked = false, $childrenMethod = null, $numChildrenMethod = "numChildren", $rootCall = true, $minNodeCount = 30) {
+		$html = "<ul>";
+		$html .= "<li class=\"BlogHolder-last-10\"><ins class=\"jstree-icon\">&nbsp;</ins><a href=\"#\" title=\"Letzte 10 Einträge\" ><ins class=\"jstree-icon\">&nbsp;</ins>Letzte 10 Einträge</a>";
+		
+		$entries = DataObject::get('BlogEntry', "ParentID = {$this->ID}", "Created DESC", "", "0,10");
+		if($entries) {
+			$html .= "<ul>";
+			foreach($entries as $child) {
+				$html .= eval("return $titleEval;") . "</li>\n";
+				//$html .= "<li><ins class=\"jstree-icon\">&nbsp;</ins><a href=\"#\">Test</a></li>";
+			}
+			$html .= "</ul></li>";
+		}
+		else {
+			$html .= "</li>";
+		}
+		//foreach($stageChildren->getRange())
+		//Debug::show($stageChildren);
+		
+		return $html."</ul>";
 	}
 }
 
